@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,27 +7,33 @@ public class SetNextTargetBlock : MonoBehaviour
     public List<Transform> blocks;
     public List<EntityMovement> entities;
 
+    public DiceMechanism dice;
+
     private void Start()
     {
         foreach (EntityMovement entity in entities)
         {
-            entity.nextTargetBlock = blocks[Random.Range(0, blocks.Count)];
+            entity.nextTargetBlock = blocks[UnityEngine.Random.Range(0, blocks.Count)];
         }
-
-        InvokeRepeating("SetIncrementedIndexOfTargetBlock", 2f, 1f);
     }
 
     private void Update()
     {
-
+        dice.OnGeneratedNumber += MoveEntityAccordingToNumberGenerated;
     }
 
-    void SetIncrementedIndexOfTargetBlock()
+    void MoveEntityAccordingToNumberGenerated(object sender, EventArgs e)
+    {
+        SetIncrementedIndexOfTargetBlock(dice.RandomNumber);
+    }
+
+    void SetIncrementedIndexOfTargetBlock(int incrementValue)
     {
         foreach (EntityMovement entity in entities)
         {
-            int nextTargetBlockIndex = FindIndexOfCurrentEntityBlock(entity) + 1;
+            int nextTargetBlockIndex = FindIndexOfCurrentEntityBlock(entity) + incrementValue;
 
+            // FIXME : nextTargetIndex can be Greater than Blocks.Count
             if (nextTargetBlockIndex < blocks.Count) entity.nextTargetBlock = blocks[nextTargetBlockIndex];
             else if (nextTargetBlockIndex == blocks.Count) entity.nextTargetBlock = blocks[0];
         }

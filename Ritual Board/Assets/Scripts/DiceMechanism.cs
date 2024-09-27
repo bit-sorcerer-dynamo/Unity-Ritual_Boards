@@ -1,11 +1,12 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class DiceMechanism : MonoBehaviour
 {
     public float rollForce = 10f;
     public float maxRollDuration = 5f;
-    public bool canRoll = true;
+    public bool isPlayersTurn = true;
     
     public EventHandler OnGeneratedNumber;
 
@@ -14,29 +15,34 @@ public class DiceMechanism : MonoBehaviour
 
     void Update()
     {
-        if (canRoll)
+
+        if (isPlayersTurn)
         {
+
             if (!isRolling && Input.GetMouseButtonDown(0))
             {
-                RollDice();
+                StartCoroutine(RollDice());
             }
         }
         else
         {
-            // Creature's Turn
+            if (!isRolling)
+            {
+                StartCoroutine(RollDice());
+            }
         }
     }
 
-    // TODO : Replace this function to return the value by 
     void GenerateRandomNumber()
     {
         RandomNumber = UnityEngine.Random.Range(1, 6);
-        Debug.Log(RandomNumber);
     }
 
-    private void RollDice()
+    IEnumerator RollDice()
     {
         isRolling = true;
+
+        #region Roll Dice
 
         Rigidbody rb = this.GetComponent<Rigidbody>();
 
@@ -46,10 +52,25 @@ public class DiceMechanism : MonoBehaviour
         Vector3 randomTorque = new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(-1f, 1f)) * rollForce;
         rb.AddTorque(randomTorque, ForceMode.Impulse);
 
-        isRolling = false;
+        #endregion
+        
+        // TODO :: Get the Number on the surface of the Dice
 
         // Generate A Number 
         GenerateRandomNumber();
         OnGeneratedNumber?.Invoke(this, EventArgs.Empty);
+
+        yield return new WaitForSeconds(1);
+
+        #region Switch Entity Turn
+
+        if (isPlayersTurn) 
+            isPlayersTurn = false;
+        else
+            isPlayersTurn = true;
+
+        #endregion
+
+        isRolling = false;
     }
 }

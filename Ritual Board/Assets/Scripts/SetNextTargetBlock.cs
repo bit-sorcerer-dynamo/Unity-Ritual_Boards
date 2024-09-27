@@ -9,8 +9,12 @@ public class SetNextTargetBlock : MonoBehaviour
 
     public DiceMechanism dice;
 
+    private const string PLAYER = "Player";
+    private const string CREATURE = "Creature";
+
     private void Start()
     {
+        // Give a Random Position to Both The Entities
         foreach (EntityMovement entity in entities)
         {
             entity.nextTargetBlock = blocks[UnityEngine.Random.Range(0, blocks.Count)];
@@ -19,26 +23,37 @@ public class SetNextTargetBlock : MonoBehaviour
 
     private void Update()
     {
+        // Calls the MoveEntityAccordingToNumberGenerated Function when The Dice is Rolled 
         dice.OnGeneratedNumber += MoveEntityAccordingToNumberGenerated;
     }
 
+    // Handles Entity Movement
     void MoveEntityAccordingToNumberGenerated(object sender, EventArgs e)
     {
-        SetIncrementedIndexOfTargetBlock(dice.RandomNumber);
+        if (dice.isPlayersTurn) 
+            SetIncrementedIndexOfTargetBlock(dice.RandomNumber, PLAYER);
+        else 
+            SetIncrementedIndexOfTargetBlock(dice.RandomNumber, CREATURE);
     }
 
-    void SetIncrementedIndexOfTargetBlock(int incrementValue)
+    // Moves a Particular Entity to the Generated Target Block
+    void SetIncrementedIndexOfTargetBlock(int incrementValue, string currentTurn)
     {
         foreach (EntityMovement entity in entities)
         {
-            int nextTargetBlockIndex = FindIndexOfCurrentEntityBlock(entity) + incrementValue;
+            if(entity.name == currentTurn)
+            {
+                int nextTargetBlockIndex = FindIndexOfCurrentEntityBlock(entity) + incrementValue;
 
-            // FIXME : nextTargetIndex can be Greater than Blocks.Count
-            if (nextTargetBlockIndex < blocks.Count) entity.nextTargetBlock = blocks[nextTargetBlockIndex];
-            else if (nextTargetBlockIndex == blocks.Count) entity.nextTargetBlock = blocks[0];
+                if (nextTargetBlockIndex > blocks.Count) nextTargetBlockIndex = nextTargetBlockIndex - blocks.Count;
+                else if (nextTargetBlockIndex == blocks.Count) nextTargetBlockIndex = 0;
+
+                entity.nextTargetBlock = blocks[nextTargetBlockIndex];
+            }
         }
     }
 
+    // Finds the current Index of an Entity
     int FindIndexOfCurrentEntityBlock(EntityMovement entity)
     {
         int currentBlockIndex = 0;
